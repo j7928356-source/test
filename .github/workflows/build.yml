@@ -1,0 +1,23 @@
+name: Build 3DS CIA
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip and Build
+        run: |
+          apt-get update && apt-get install -y unzip python3
+          ZIPFILE=$(ls -t *.zip | head -n 1)
+          unzip -o "$ZIPFILE" -d build_dir
+          cd build_dir/* 2>/dev/null || cd build_dir
+          make
+          make cia || true
+      - name: Upload CIA & 3DSX
+        uses: actions/upload-artifact@v4
+        with:
+          name: Atari2600-3DS-Release
+          path: |
+            build_dir/**/*.cia
+            build_dir/**/*.3dsx
